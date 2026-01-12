@@ -115,34 +115,28 @@ export class UserRepo {
       where.isActive = filter.isActive;
     }
 
+    // Always exclude admin users from the list
     if (filter.roles && filter.roles.length > 0) {
-      where.role = { in: filter.roles };
+      // Filter out ADMIN from roles filter and only allow EMPLOYEE
+      const employeeRoles = filter.roles.filter(role => role !== Role.ADMIN);
+      if (employeeRoles.length > 0) {
+        where.role = { in: employeeRoles };
+      } else {
+        // If only ADMIN was selected, return no results (since we exclude ADMIN)
+        where.role = { in: [] };
+      }
+    } else {
+      // If no role filter, exclude ADMIN by default
+      where.role = { not: Role.ADMIN };
     }
 
     const hasPermissionFilter =
       filter.permissionCodes !== undefined && filter.permissionCodes.length > 0;
     if (hasPermissionFilter) {
-      const includesAdmin =
-        !filter.roles || filter.roles.length === 0 || filter.roles.includes(Role.ADMIN);
-      const includesEmployee =
-        !filter.roles || filter.roles.length === 0 || filter.roles.includes(Role.EMPLOYEE);
-
-      if (includesAdmin && includesEmployee) {
-        where.OR = [
-          { role: Role.ADMIN },
-          {
-            permissions: {
-              some: { permission: { code: { in: filter.permissionCodes } } },
-            },
-          },
-        ];
-      } else if (includesAdmin) {
-        where.role = Role.ADMIN;
-      } else {
-        where.permissions = {
-          some: { permission: { code: { in: filter.permissionCodes } } },
-        };
-      }
+      // Only filter by permissions for employees (admin users are excluded)
+      where.permissions = {
+        some: { permission: { code: { in: filter.permissionCodes } } },
+      };
     }
 
     return where;
