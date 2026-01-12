@@ -1,0 +1,53 @@
+{
+  "compilerOptions": {
+    // Environment
+    "lib": ["ESNext"],
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleDetection": "force",
+
+    // Bundler mode (Bun)
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "noEmit": true,
+
+    // Type Checking
+    "strict": true,
+    "skipLibCheck": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+
+    // Code Quality
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+
+    // Module Interop
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+
+    // Path Aliases
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@/generated/*": ["./generated/*"]
+    },
+
+    // Bun Types
+    "types": ["bun-types"]
+  },
+  "include": [
+    "src/**/*.ts",
+    "prisma/**/*.ts",
+    "tests/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "generated"
+  ]
+}

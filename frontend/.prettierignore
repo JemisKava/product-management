@@ -1,0 +1,11 @@
+node_modules
+.next
+out
+build
+dist
+*.lock
+*.log
+.next-env.d.ts
+tsconfig.tsbuildinfo
+coverage
+.vercel
