@@ -7,7 +7,7 @@ export function LoginSidebar() {
       <LoginBrand />
       <LoginHero />
       <p className="text-xs text-muted-foreground">
-        Need help? Contact your administrator for access.
+        Need assistance? Contact your system administrator.
       </p>
     </div>
   );

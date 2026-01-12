@@ -15,7 +15,7 @@ export function LoginGate({ children }: LoginGateProps) {
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      router.push("/");
+      router.push("/products");
     }
   }, [isAuthenticated, isLoading, router]);
 

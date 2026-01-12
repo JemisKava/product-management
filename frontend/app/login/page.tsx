@@ -1,10 +1,14 @@
-import { LoginGate } from "@/features/login/components/login-gate";
-import { LoginLayout } from "@/features/login/components/login-layout";
+"use client";
 
-export default function LoginPage() {
-  return (
-    <LoginGate>
-      <LoginLayout />
-    </LoginGate>
-  );
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+
+export default function LoginRedirectPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    router.replace("/");
+  }, [router]);
+
+  return null;
 }

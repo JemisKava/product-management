@@ -14,7 +14,7 @@ export function usePermissionsAuth() {
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      router.push("/login");
+      router.push("/");
     }
   }, [isAuthenticated, isLoading, router]);
 

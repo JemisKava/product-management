@@ -12,7 +12,7 @@ export function useUsersAuth() {
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      router.push("/login");
+      router.push("/");
     }
   }, [isAuthenticated, isLoading, router]);
 

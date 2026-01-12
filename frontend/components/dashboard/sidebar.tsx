@@ -29,12 +29,9 @@ import { useAuthStore } from "@/store/authStore";
 import {
   Atom,
   ChevronsUpDown,
-  CreditCard,
   LogOut,
   Package,
-  Settings,
   Shield,
-  UserCircle,
   Users,
 } from "lucide-react";
 
@@ -91,14 +88,14 @@ export function DashboardSidebar({
         description: "You have been signed out of your account.",
       });
       logoutStore();
-      router.push("/login");
+      router.push("/");
     },
     onError: () => {
       toast.info("Logged out", {
         description: "You have been signed out.",
       });
       logoutStore();
-      router.push("/login");
+      router.push("/");
     },
   });
 
@@ -116,7 +113,7 @@ export function DashboardSidebar({
           <div className="flex size-5 items-center justify-center rounded bg-linear-to-b from-[#6e3ff3] to-[#aa8ef9] text-white">
             <Atom className="size-3" />
           </div>
-          <span className="font-semibold text-base sm:text-lg">Cliento</span>
+          <span className="font-semibold text-base sm:text-lg">Apex</span>
         </Link>
       </SidebarHeader>
 
@@ -172,19 +169,6 @@ export function DashboardSidebar({
             </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-[200px]">
-            <DropdownMenuItem>
-              <UserCircle className="size-4 mr-2" />
-              Profile
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <CreditCard className="size-4 mr-2" />
-              Billing
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Settings className="size-4 mr-2" />
-              Settings
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
             <DropdownMenuItem
               className="text-destructive"
               onSelect={handleLogout}

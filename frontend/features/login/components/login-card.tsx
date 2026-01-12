@@ -15,7 +15,7 @@ export function LoginCard() {
       <CardHeader className="space-y-2">
         <CardTitle className="text-2xl">Welcome back</CardTitle>
         <CardDescription>
-          Sign in to continue to your workspace.
+          Sign in to access your product management dashboard.
         </CardDescription>
       </CardHeader>
       <CardContent>

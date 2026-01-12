@@ -5,29 +5,29 @@ export function LoginHero() {
   return (
     <div className="max-w-xl space-y-5">
       <h1 className="text-4xl font-semibold tracking-tight">
-        Organize products, permissions, and sales in one workspace.
+        Streamline your product management workflow
       </h1>
       <p className="text-base text-muted-foreground">
-        Modern dashboards, real-time insights, and secure access control
-        designed for growing teams.
+        Manage inventory, track products, and collaborate with your team
+        seamlessly in one powerful platform.
       </p>
       <div className="grid gap-3">
         <LoginFeatureCard
           icon={Sparkles}
-          title="Smart dashboards"
-          description="Track revenue, leads, and pipeline health instantly."
+          title="Intuitive dashboard"
+          description="Get a clear overview of your products and inventory at a glance."
           iconColor="text-[#6e3ff3]"
         />
         <LoginFeatureCard
           icon={TrendingUp}
-          title="Actionable analytics"
-          description="Spot trends and keep your team aligned."
+          title="Real-time insights"
+          description="Make data-driven decisions with up-to-date analytics and reports."
           iconColor="text-[#35b9e9]"
         />
         <LoginFeatureCard
           icon={ShieldCheck}
-          title="Secure by default"
-          description="JWT access with refresh tokens and role protection."
+          title="Enterprise security"
+          description="Your data is protected with industry-standard security measures."
           iconColor="text-emerald-400"
         />
       </div>

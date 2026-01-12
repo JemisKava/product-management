@@ -7,7 +7,7 @@ export function LoginBrand() {
         <Atom className="size-5" />
       </div>
       <div>
-        <p className="text-lg font-semibold leading-tight">Cliento</p>
+        <p className="text-lg font-semibold leading-tight">Apex</p>
         <p className="text-xs text-muted-foreground">
           Product Management Suite
         </p>
