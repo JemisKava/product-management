@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   type ColumnDef,
+  type RowSelectionState,
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
@@ -96,6 +97,13 @@ type UsersTableProps = {
   isBulkDeleting?: boolean;
   isBulkUpdating?: boolean;
   searchInputRef?: React.RefObject<HTMLInputElement | null>;
+  rowSelection?: RowSelectionState;
+  setRowSelection?: (selection: RowSelectionState | ((prev: RowSelectionState) => RowSelectionState)) => void;
+  selectedIds?: number[];
+  selectedUsersPreview?: Array<{ id: number; name: string; email: string }>;
+  previewUsers?: Array<{ id: number; name: string; email: string; role: UserRole; isActive: boolean }>;
+  extraSelectedCount?: number;
+  onClearSelection?: () => void;
 };
 
 const ROLE_LABELS: Record<UserRole, string> = {
@@ -217,70 +225,48 @@ export function UsersTable({
   onBulkStatusUpdate,
   isBulkDeleting = false,
   isBulkUpdating = false,
+  rowSelection: externalRowSelection,
+  setRowSelection: externalSetRowSelection,
+  selectedIds: externalSelectedIds,
+  selectedUsersPreview: externalSelectedUsersPreview,
+  previewUsers: externalPreviewUsers,
+  extraSelectedCount: externalExtraSelectedCount,
+  onClearSelection,
 }: UsersTableProps) {
-  const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
-  const [previewOpen, setPreviewOpen] = useState(false);
-  const [previewAction, setPreviewAction] = useState<
-    { type: "delete" } | { type: "status"; isActive: boolean } | null
-  >(null);
-  const userMetaByIdRef = useRef<
-    Map<
-      number,
-      { name: string; email: string; role: UserRole; isActive: boolean }
-    >
-  >(new Map());
-
-  useEffect(() => {
-    data.forEach((user) => {
-      userMetaByIdRef.current.set(user.id, {
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        isActive: user.isActive,
-      });
-    });
-  }, [data]);
-
-  const selectedIds = useMemo(() => {
-    return Object.entries(rowSelection)
-      .filter(([, isSelected]) => isSelected)
-      .map(([id]) => Number(id))
-      .filter((id) => Number.isFinite(id));
-  }, [rowSelection]);
-
-  const selectedCount = selectedIds.length;
-  const canBulkActions = Boolean(onBulkDelete);
-
-  const selectedUsersPreview = useMemo(() => {
-    return selectedIds.slice(0, 4).map((id) => {
-      const meta = userMetaByIdRef.current.get(id);
-      return {
-        id,
-        name: meta?.name ?? `Employee #${id}`,
-        email: meta?.email ?? "—",
-      };
-    });
-  }, [selectedIds]);
-
-  const extraSelectedCount = Math.max(
+  // Use external selection state if provided, otherwise fall back to local state
+  const [internalRowSelection, setInternalRowSelection] = useState<RowSelectionState>({});
+  const rowSelection = externalRowSelection ?? internalRowSelection;
+  const setRowSelection = externalSetRowSelection ?? setInternalRowSelection;
+  const selectedIds = externalSelectedIds ?? Object.entries(rowSelection)
+    .filter(([, isSelected]) => isSelected)
+    .map(([id]) => Number(id))
+    .filter((id) => Number.isFinite(id));
+  const selectedUsersPreview = externalSelectedUsersPreview ?? selectedIds.slice(0, 4).map((id) => ({
+    id,
+    name: `Employee #${id}`,
+    email: "—",
+  }));
+  const previewUsers = externalPreviewUsers ?? selectedIds
+    .map((id) => ({
+      id,
+      name: `Employee #${id}`,
+      email: "—",
+      role: "EMPLOYEE" as UserRole,
+      isActive: true,
+    }))
+    .sort((left, right) => left.name.localeCompare(right.name));
+  const extraSelectedCount = externalExtraSelectedCount ?? Math.max(
     selectedIds.length - selectedUsersPreview.length,
     0
   );
 
-  const previewUsers = useMemo(() => {
-    return selectedIds
-      .map((id) => {
-        const meta = userMetaByIdRef.current.get(id);
-        return {
-          id,
-          name: meta?.name ?? `Employee #${id}`,
-          email: meta?.email ?? "—",
-          role: meta?.role ?? "EMPLOYEE",
-          isActive: meta?.isActive ?? true,
-        };
-      })
-      .sort((left, right) => left.name.localeCompare(right.name));
-  }, [selectedIds]);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewAction, setPreviewAction] = useState<
+    { type: "delete" } | { type: "status"; isActive: boolean } | null
+  >(null);
+
+  const selectedCount = selectedIds.length;
+  const canBulkActions = Boolean(onBulkDelete);
 
   useEffect(() => {
     if (selectedCount === 0 && previewOpen) {
@@ -289,7 +275,11 @@ export function UsersTable({
   }, [previewOpen, selectedCount]);
 
   const handleDiscardSelection = () => {
-    setRowSelection({});
+    if (onClearSelection) {
+      onClearSelection();
+    } else {
+      setRowSelection({});
+    }
     setPreviewOpen(false);
   };
 
@@ -297,7 +287,11 @@ export function UsersTable({
     if (!onBulkDelete || selectedIds.length === 0) return;
     try {
       await onBulkDelete(selectedIds);
-      setRowSelection({});
+      if (onClearSelection) {
+        onClearSelection();
+      } else {
+        setRowSelection({});
+      }
       setPreviewOpen(false);
     } catch {
       // errors are handled upstream
@@ -308,7 +302,11 @@ export function UsersTable({
     if (!onBulkStatusUpdate || selectedIds.length === 0) return;
     try {
       await onBulkStatusUpdate(selectedIds, isActive);
-      setRowSelection({});
+      if (onClearSelection) {
+        onClearSelection();
+      } else {
+        setRowSelection({});
+      }
       setPreviewOpen(false);
       setPreviewAction(null);
     } catch {
@@ -460,7 +458,7 @@ export function UsersTable({
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
     pageCount: Math.max(totalPages, 1),
-    getRowId: (row) => row.id.toString(),
+    getRowId: (row) => String(row.id),
     enableRowSelection: (row) => row.original.role !== "ADMIN",
     onRowSelectionChange: setRowSelection,
     state: {

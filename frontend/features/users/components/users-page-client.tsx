@@ -14,6 +14,7 @@ import { useUsersAuth } from "../hooks/use-users-auth";
 import { useUsersData } from "../hooks/use-users-data";
 import { useUsersMutations } from "../hooks/use-users-mutations";
 import { useUsersModal } from "../hooks/use-users-modal";
+import { useUsersSelection } from "../hooks/use-users-selection";
 import type { UserRole, UserStatus } from "@/components/users/users-table";
 
 export function UsersPageClient() {
@@ -56,6 +57,10 @@ export function UsersPageClient() {
   });
 
   const modal = useUsersModal();
+
+  // Selection - use users from data, updating when data changes
+  const users = data.usersData?.users ?? [];
+  const selection = useUsersSelection(users);
 
   // Handle role toggle
   const handleRoleToggle = (role: UserRole) => {
@@ -173,6 +178,12 @@ export function UsersPageClient() {
             totalPages={data.usersData?.meta.totalPages ?? 1}
             totalItems={data.usersData?.meta.total ?? 0}
             searchInputRef={filters.searchInputRef}
+            rowSelection={selection.rowSelection}
+            setRowSelection={selection.setRowSelection}
+            selectedIds={selection.selectedIds}
+            selectedUsersPreview={selection.selectedUsersPreview}
+            previewUsers={selection.previewUsers}
+            extraSelectedCount={selection.extraSelectedCount}
             onNameSearchChange={filters.handleNameSearchChange}
             onEmailSearchChange={filters.handleEmailSearchChange}
             onStatusFilterChange={filters.handleStatusFilterChange}
@@ -194,6 +205,7 @@ export function UsersPageClient() {
             isBulkDeleting={mutations.isBulkDeleting}
             onBulkStatusUpdate={mutations.handleBulkStatusUpdate}
             isBulkUpdating={mutations.isBulkUpdating}
+            onClearSelection={() => selection.setRowSelection({})}
           />
         </div>
       </main>
