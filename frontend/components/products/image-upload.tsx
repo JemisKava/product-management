@@ -88,6 +88,9 @@ export function ImageUpload({
     );
     if (validFiles.length === 0) {
       setError("Please select image files.");
+      if (inputRef.current) {
+        inputRef.current.value = "";
+      }
       return;
     }
 
@@ -134,6 +137,9 @@ export function ImageUpload({
       setError(message);
     } finally {
       setIsUploading(false);
+      if (inputRef.current) {
+        inputRef.current.value = "";
+      }
     }
   };
 
@@ -223,6 +229,9 @@ export function ImageUpload({
                     (_, itemIndex) => itemIndex !== index
                   );
                   onChange(serializeImages(nextImages));
+                  if (inputRef.current) {
+                    inputRef.current.value = "";
+                  }
                 }}
                 aria-label="Remove image"
               >
@@ -247,7 +256,12 @@ export function ImageUpload({
             type="button"
             variant="ghost"
             size="sm"
-            onClick={() => onChange(null)}
+            onClick={() => {
+              onChange(null);
+              if (inputRef.current) {
+                inputRef.current.value = "";
+              }
+            }}
             disabled={disabled}
           >
             Remove all
