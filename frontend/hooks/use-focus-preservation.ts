@@ -1,116 +1,173 @@
-import { useCallback, useEffect, useRef } from "react";
+"use client";
+
+import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
+
+// Global state to track which input is currently being typed in
+const activeInputRef = {
+  id: null as string | null,
+  selectionStart: null as number | null,
+  selectionEnd: null as number | null,
+};
 
 /**
  * Hook to preserve focus across re-renders when data changes
  *
- * This is useful for filter inputs where focus should remain
- * even when data table re-renders with new data.
+ * Simple hack: Track which input user is typing in, then restore it
+ * using useLayoutEffect on every render.
  */
 export function useFocusPreservation() {
   const inputRefsMap = useRef<Map<string, HTMLInputElement | null>>(new Map());
-  const callbackRefsMap = useRef<
-    Map<string, (element: HTMLInputElement | null) => void>
-  >(new Map());
-  const lastFocusedIdRef = useRef<string | null>(null);
-  const beforeRenderFocusedElementRef = useRef<HTMLElement | null>(null);
-  const restoreTimeoutRef = useRef<number | null>(null);
 
-  // Restore focus to last focused input
-  const restoreFocus = useCallback(() => {
-    if (restoreTimeoutRef.current !== null) {
-      clearTimeout(restoreTimeoutRef.current);
-    }
-
-    restoreTimeoutRef.current = window.setTimeout(() => {
-      const lastFocusedId = lastFocusedIdRef.current;
-      const beforeRenderElement = beforeRenderFocusedElementRef.current;
-
-      if (!lastFocusedId || !beforeRenderElement) return;
-
-      const inputToFocus = inputRefsMap.current.get(lastFocusedId);
-      if (!inputToFocus || !inputToFocus.isConnected || inputToFocus.disabled)
-        return;
-
-      // Don't restore if already focused on right element
-      if (document.activeElement === inputToFocus) return;
-
-      // Don't restore if focused on another tracked input
-      if (
-        document.activeElement instanceof HTMLInputElement &&
-        document.activeElement.dataset.focusId
-      ) {
-        return;
-      }
-
-      // Restore selection if available
-      if (beforeRenderElement instanceof HTMLInputElement) {
-        const selectionStart = beforeRenderElement.selectionStart;
-        const selectionEnd = beforeRenderElement.selectionEnd;
-        inputToFocus.focus();
-        if (selectionStart !== null && selectionEnd !== null) {
-          inputToFocus.setSelectionRange(selectionStart, selectionEnd);
-        }
-      } else {
-        inputToFocus.focus();
-      }
-
-      beforeRenderFocusedElementRef.current = null;
-      restoreTimeoutRef.current = null;
-    }, 0);
-  }, []);
-
-  // Track focus changes via event listener
+  // Track when user focuses/types in an input
   useEffect(() => {
     const handleFocusIn = (event: FocusEvent) => {
       const target = event.target;
       if (target instanceof HTMLInputElement && target.dataset.focusId) {
-        lastFocusedIdRef.current = target.dataset.focusId;
-        beforeRenderFocusedElementRef.current = target;
+        activeInputRef.id = target.dataset.focusId;
+        activeInputRef.selectionStart = target.selectionStart;
+        activeInputRef.selectionEnd = target.selectionEnd;
       }
     };
 
+    const handleInput = (event: Event) => {
+      const target = event.target;
+      if (target instanceof HTMLInputElement && target.dataset.focusId) {
+        // User is actively typing - update tracking
+        activeInputRef.id = target.dataset.focusId;
+        activeInputRef.selectionStart = target.selectionStart;
+        activeInputRef.selectionEnd = target.selectionEnd;
+      }
+    };
+
+    const handleSelectionChange = () => {
+      const activeElement = document.activeElement;
+      if (
+        activeElement instanceof HTMLInputElement &&
+        activeElement.dataset.focusId === activeInputRef.id
+      ) {
+        // Update selection as user types/selects
+        activeInputRef.selectionStart = activeElement.selectionStart;
+        activeInputRef.selectionEnd = activeElement.selectionEnd;
+      }
+    };
+
+    // Use capture phase to catch all events
     document.addEventListener("focusin", handleFocusIn, true);
+    document.addEventListener("input", handleInput, true);
+    document.addEventListener("selectionchange", handleSelectionChange);
 
     return () => {
-      if (restoreTimeoutRef.current !== null) {
-        clearTimeout(restoreTimeoutRef.current);
-      }
       document.removeEventListener("focusin", handleFocusIn, true);
+      document.removeEventListener("input", handleInput, true);
+      document.removeEventListener("selectionchange", handleSelectionChange);
     };
   }, []);
 
-  const registerInput = useCallback(
-    (name: string, element: HTMLInputElement | null) => {
-      const previousElement = inputRefsMap.current.get(name);
+  // Register input element
+  const registerInput = useCallback((name: string, element: HTMLInputElement | null) => {
+    if (element) {
+      element.dataset.focusId = name;
+      inputRefsMap.current.set(name, element);
+    } else {
+      inputRefsMap.current.delete(name);
+    }
+  }, []);
 
-      if (element) {
-        element.dataset.focusId = name;
-        inputRefsMap.current.set(name, element);
+  // THE HACK: Use useLayoutEffect to restore focus on EVERY render
+  // This runs synchronously after DOM updates but before browser paint
+  useLayoutEffect(() => {
+    // If there's an active input that user was typing in
+    if (activeInputRef.id) {
+      const inputElement = inputRefsMap.current.get(activeInputRef.id);
+      const activeElement = document.activeElement;
 
-        // If this input was focused before and is being re-registered with a new element
-        // This happens when component re-renders with same input
-        if (lastFocusedIdRef.current === name && previousElement !== element) {
-          restoreFocus();
+      // Check if we need to restore focus
+      if (
+        inputElement &&
+        inputElement.isConnected &&
+        !inputElement.disabled &&
+        !inputElement.readOnly &&
+        activeElement !== inputElement &&
+        // Only restore if focus is lost (on body/document) or not on another tracked input
+        (activeElement === document.body ||
+          activeElement === document.documentElement ||
+          !(activeElement instanceof HTMLInputElement) ||
+          !activeElement.dataset.focusId)
+      ) {
+        // Restore focus immediately
+        try {
+          inputElement.focus({ preventScroll: true });
+
+          // Restore cursor position if we have it
+          if (
+            activeInputRef.selectionStart !== null &&
+            activeInputRef.selectionEnd !== null
+          ) {
+            try {
+              inputElement.setSelectionRange(
+                activeInputRef.selectionStart,
+                activeInputRef.selectionEnd
+              );
+            } catch {
+              // Some input types don't support selection, ignore
+            }
+          }
+        } catch {
+          // Ignore focus errors
         }
-      } else {
-        inputRefsMap.current.delete(name);
       }
-    },
-    [restoreFocus]
-  );
+    }
+  });
 
-  // Memoize callback refs per input name to prevent unnecessary re-registrations
+  // Also try after a microtask (handles cases where useLayoutEffect is too early)
+  useEffect(() => {
+    if (activeInputRef.id) {
+      const inputElement = inputRefsMap.current.get(activeInputRef.id);
+      const activeElement = document.activeElement;
+
+      if (
+        inputElement &&
+        inputElement.isConnected &&
+        !inputElement.disabled &&
+        !inputElement.readOnly &&
+        activeElement !== inputElement &&
+        (activeElement === document.body ||
+          activeElement === document.documentElement ||
+          !(activeElement instanceof HTMLInputElement) ||
+          !activeElement.dataset.focusId)
+      ) {
+        // Use requestAnimationFrame for next frame
+        requestAnimationFrame(() => {
+          if (activeInputRef.id && inputElement.isConnected) {
+            try {
+              inputElement.focus({ preventScroll: true });
+              if (
+                activeInputRef.selectionStart !== null &&
+                activeInputRef.selectionEnd !== null
+              ) {
+                try {
+                  inputElement.setSelectionRange(
+                    activeInputRef.selectionStart,
+                    activeInputRef.selectionEnd
+                  );
+                } catch {
+                  // Ignore
+                }
+              }
+            } catch {
+              // Ignore
+            }
+          }
+        });
+      }
+    }
+  });
+
   const createInputRef = useCallback(
     (name: string) => {
-      let callbackRef = callbackRefsMap.current.get(name);
-
-      if (!callbackRef) {
-        callbackRef = (element: HTMLInputElement | null) =>
-          registerInput(name, element);
-        callbackRefsMap.current.set(name, callbackRef);
-      }
-
-      return callbackRef;
+      return (element: HTMLInputElement | null) => {
+        registerInput(name, element);
+      };
     },
     [registerInput]
   );
