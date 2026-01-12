@@ -9,7 +9,7 @@ import { usePermissionsAuth } from "../hooks/use-permissions-auth";
 import { usePermissionsData } from "../hooks/use-permissions-data";
 import { PermissionsContent } from "./permissions-content";
 
-export function PermissionsPageClient() {
+export function PermissionsClient() {
   // Query state management
   const queryState = usePermissionsQueryState();
 

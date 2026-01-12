@@ -16,7 +16,7 @@ import { useUsersMutations } from "../hooks/use-users-mutations";
 import { useUsersModal } from "../hooks/use-users-modal";
 import type { UserRole, UserStatus } from "@/components/users/users-table";
 
-export function UsersPageClient() {
+export function UsersClient() {
   const queryState = useUsersQueryState();
   const filters = useUsersFilters({
     searchParam: queryState.searchParam,

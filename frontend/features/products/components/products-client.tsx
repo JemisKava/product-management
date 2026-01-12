@@ -19,7 +19,7 @@ import { useProductsModal } from "../hooks/use-products-modal";
 import type { ProductRow } from "../products-utils";
 import type { ProductFilterStatus } from "@/components/products/product-filters";
 
-export function ProductsPageClient() {
+export function ProductsClient() {
   // Query state
   const queryState = useProductsQueryState();
 
