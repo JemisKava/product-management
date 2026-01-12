@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { UserRole, UserStatus } from "@/components/users/users-table";
 
 interface UseUsersFiltersProps {
@@ -134,25 +134,25 @@ export function useUsersFilters({
     return undefined;
   }, [statuses]);
 
-  const handleNameSearchChange = (value: string) => {
+  const handleNameSearchChange = useCallback((value: string) => {
     setNameInput(value);
-  };
+  }, []);
 
-  const handleEmailSearchChange = (value: string) => {
+  const handleEmailSearchChange = useCallback((value: string) => {
     setEmailInput(value);
-  };
+  }, []);
 
-  const handleStatusFilterChange = (value: "all" | "active" | "inactive") => {
+  const handleStatusFilterChange = useCallback((value: "all" | "active" | "inactive") => {
     setStatusFilterParam(value);
     setPage(1);
-  };
+  }, [setStatusFilterParam, setPage]);
 
-  const handlePermissionCodesChange = (codes: string[]) => {
+  const handlePermissionCodesChange = useCallback((codes: string[]) => {
     setPermissionCodesParam(codes.length > 0 ? codes.join(",") : null);
     setPage(1);
-  };
+  }, [setPermissionCodesParam, setPage]);
 
-  const handleClearTableFilters = () => {
+  const handleClearTableFilters = useCallback(() => {
     setNameInput("");
     setNameParam(null);
     setEmailInput("");
@@ -160,29 +160,29 @@ export function useUsersFilters({
     setStatusFilterParam("all");
     setPermissionCodesParam(null);
     setPage(1);
-  };
+  }, [setNameParam, setEmailParam, setStatusFilterParam, setPermissionCodesParam, setPage]);
 
-  const handleRoleToggle = (role: UserRole) => {
+  const handleRoleToggle = useCallback((role: UserRole) => {
     const nextRoles = roles.includes(role)
       ? roles.filter((item) => item !== role)
       : [...roles, role];
     // This will be handled by the parent component
     return nextRoles;
-  };
+  }, [roles]);
 
-  const handleStatusToggle = (status: UserStatus) => {
+  const handleStatusToggle = useCallback((status: UserStatus) => {
     const nextStatuses = statuses.includes(status)
       ? statuses.filter((item) => item !== status)
       : [...statuses, status];
     // This will be handled by the parent component
     return nextStatuses;
-  };
+  }, [statuses]);
 
-  const handleClearFilters = () => {
+  const handleClearFilters = useCallback(() => {
     setSearchInput("");
     setSearchParam(null);
     setPage(1);
-  };
+  }, [setSearchParam, setPage]);
 
   return {
     searchInput,

@@ -70,7 +70,7 @@ export function PermissionsClient() {
       {isInitialLoad ? (
         <PermissionsSkeleton />
       ) : (
-        <main className="flex-1 overflow-auto p-3 sm:p-4 md:p-6 w-full">
+        <main className="p-3 sm:p-4 md:p-6 w-full">
         <PermissionsContent
           data={data.employees}
           filters={{

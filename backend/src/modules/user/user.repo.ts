@@ -134,9 +134,9 @@ export class UserRepo {
       filter.permissionCodes !== undefined && filter.permissionCodes.length > 0;
     if (hasPermissionFilter) {
       // Only filter by permissions for employees (admin users are excluded)
-      where.permissions = {
-        some: { permission: { code: { in: filter.permissionCodes } } },
-      };
+        where.permissions = {
+          some: { permission: { code: { in: filter.permissionCodes } } },
+        };
     }
 
     return where;

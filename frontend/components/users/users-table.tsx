@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   type ColumnDef,
   type RowSelectionState,
@@ -25,7 +25,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { DataTable } from "@/components/data-table/data-table";
+import { DataTable, type DataTableStickyContext } from "@/components/data-table/data-table";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
 import {
   Table,
@@ -278,7 +278,7 @@ export function UsersTable({
     if (onClearSelection) {
       onClearSelection();
     } else {
-      setRowSelection({});
+    setRowSelection({});
     }
     setPreviewOpen(false);
   };
@@ -290,7 +290,7 @@ export function UsersTable({
       if (onClearSelection) {
         onClearSelection();
       } else {
-        setRowSelection({});
+      setRowSelection({});
       }
       setPreviewOpen(false);
     } catch {
@@ -305,7 +305,7 @@ export function UsersTable({
       if (onClearSelection) {
         onClearSelection();
       } else {
-        setRowSelection({});
+      setRowSelection({});
       }
       setPreviewOpen(false);
       setPreviewAction(null);
@@ -470,6 +470,40 @@ export function UsersTable({
     },
   });
 
+  // Memoize the renderPrependRows callback to prevent unnecessary re-renders
+  // Only include filter values in dependencies, not callback functions
+  const renderPrependRowsCallback = useCallback(
+    ({ getStickyCellProps }: { getStickyCellProps: DataTableStickyContext["getStickyCellProps"] }) => (
+      <MemoizedUsersFilters
+        nameSearch={nameSearch}
+        emailSearch={emailSearch}
+        status={statusFilter}
+        permissionCodes={permissionCodes}
+        availablePermissions={ALL_PERMISSION_CODES}
+        onNameSearchChange={onNameSearchChange}
+        onEmailSearchChange={onEmailSearchChange}
+        onStatusChange={onStatusFilterChange}
+        onPermissionCodesChange={onPermissionCodesChange}
+        onClear={onClearTableFilters}
+        isLoading={isLoading}
+        getStickyCellProps={getStickyCellProps}
+      />
+    ),
+    [
+      nameSearch,
+      emailSearch,
+      statusFilter,
+      permissionCodes,
+      isLoading,
+      // Callback functions are stable (memoized in hooks) so don't need to be in deps
+      // but we include them to be safe - the memo comparison will ignore them anyway
+      onNameSearchChange,
+      onEmailSearchChange,
+      onStatusFilterChange,
+      onPermissionCodesChange,
+      onClearTableFilters,
+    ]
+  );
 
   return (
     <div className="space-y-3">
@@ -569,22 +603,7 @@ export function UsersTable({
           isLoading={isLoading}
           skeletonRows={pageSize}
           stickyColumns={2}
-          renderPrependRows={({ getStickyCellProps }) => (
-            <MemoizedUsersFilters
-              nameSearch={nameSearch}
-              emailSearch={emailSearch}
-              status={statusFilter}
-              permissionCodes={permissionCodes}
-              availablePermissions={ALL_PERMISSION_CODES}
-              onNameSearchChange={onNameSearchChange}
-              onEmailSearchChange={onEmailSearchChange}
-              onStatusChange={onStatusFilterChange}
-              onPermissionCodesChange={onPermissionCodesChange}
-              onClear={onClearTableFilters}
-              isLoading={isLoading}
-              getStickyCellProps={getStickyCellProps}
-            />
-          )}
+          renderPrependRows={renderPrependRowsCallback}
           emptyState={
             <span className="text-sm text-muted-foreground">
               No users match these filters.

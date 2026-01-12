@@ -5,6 +5,7 @@ import {
   type EmployeeRow,
 } from "@/components/permissions/permissions-table";
 import type { PermissionCode } from "@/lib/permissions";
+import type { RowSelectionState } from "@tanstack/react-table";
 import { PermissionsHeader } from "./permissions-header";
 
 type EmployeeStatus = "active" | "inactive";
@@ -25,6 +26,12 @@ interface PermissionsContentProps {
   pageSize: number;
   totalPages: number;
   totalItems: number;
+  rowSelection: RowSelectionState;
+  setRowSelection: (selection: RowSelectionState | ((prev: RowSelectionState) => RowSelectionState)) => void;
+  selectedUserIds: number[];
+  selectedUsers: EmployeeRow[];
+  selectedUsersPreview: Array<{ id: number; name: string; email: string }>;
+  extraSelectedCount: number;
   onNameSearchChange: (value: string) => void;
   onEmailSearchChange: (value: string) => void;
   onPermissionCodesFilterChange: (codes: PermissionCode[]) => void;
@@ -49,6 +56,12 @@ export function PermissionsContent({
   pageSize,
   totalPages,
   totalItems,
+  rowSelection,
+  setRowSelection,
+  selectedUserIds,
+  selectedUsers,
+  selectedUsersPreview,
+  extraSelectedCount,
   onNameSearchChange,
   onEmailSearchChange,
   onPermissionCodesFilterChange,
@@ -75,6 +88,12 @@ export function PermissionsContent({
         pageSize={pageSize}
         totalPages={totalPages}
         totalItems={totalItems}
+        rowSelection={rowSelection}
+        setRowSelection={setRowSelection}
+        selectedUserIds={selectedUserIds}
+        selectedUsers={selectedUsers}
+        selectedUsersPreview={selectedUsersPreview}
+        extraSelectedCount={extraSelectedCount}
         onNameSearchChange={onNameSearchChange}
         onEmailSearchChange={onEmailSearchChange}
         onPermissionCodesFilterChange={onPermissionCodesFilterChange}

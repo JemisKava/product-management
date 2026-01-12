@@ -1,7 +1,8 @@
 "use client";
 
+import { useCallback } from "react";
 import { getCoreRowModel, useReactTable, type RowSelectionState } from "@tanstack/react-table";
-import { DataTable } from "@/components/data-table/data-table";
+import { DataTable, type DataTableStickyContext } from "@/components/data-table/data-table";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
 import { MemoizedProductFilters } from "@/components/products/product-filters";
 import { useProductsTableColumns } from "./products-table-columns";
@@ -133,6 +134,64 @@ export function ProductsContent({
     },
   });
 
+  // Memoize the renderPrependRows callback to prevent unnecessary re-renders
+  // Only include filter values in dependencies, not callback functions
+  const renderPrependRowsCallback = useCallback(
+    ({ getStickyCellProps }: DataTableStickyContext) => (
+      <MemoizedProductFilters
+        canBulk={canBulk}
+        showActions
+        search={searchInput}
+        categoryIds={categoryIds}
+        statuses={statuses}
+        priceMin={priceMinInput}
+        priceMax={priceMaxInput}
+        stockMin={stockMinInput}
+        stockMax={stockMaxInput}
+        categories={filterOptions?.categories ?? []}
+        statusOptions={statusOptions}
+        priceRange={filterOptions?.priceRange ?? { min: 0, max: 0 }}
+        stockRange={filterOptions?.stockRange ?? { min: 0, max: 0 }}
+        onSearchChange={onSearchChange}
+        onCategoryChange={onCategoryChange}
+        onStatusChange={onStatusChange}
+        onPriceMinChange={onPriceMinChange}
+        onPriceMaxChange={onPriceMaxChange}
+        onStockMinChange={onStockMinChange}
+        onStockMaxChange={onStockMaxChange}
+        onClear={onClearFilters}
+        isLoading={isLoading || filterOptionsLoading}
+        getStickyCellProps={getStickyCellProps}
+      />
+    ),
+    [
+      canBulk,
+      searchInput,
+      categoryIds,
+      statuses,
+      priceMinInput,
+      priceMaxInput,
+      stockMinInput,
+      stockMaxInput,
+      filterOptions?.categories,
+      filterOptions?.priceRange,
+      filterOptions?.stockRange,
+      statusOptions,
+      isLoading,
+      filterOptionsLoading,
+      // Callback functions are stable so don't need to be in deps
+      // but we include them to be safe - the memo comparison will ignore them anyway
+      onSearchChange,
+      onCategoryChange,
+      onStatusChange,
+      onPriceMinChange,
+      onPriceMaxChange,
+      onStockMinChange,
+      onStockMaxChange,
+      onClearFilters,
+    ]
+  );
+
   return (
     <div className="flex flex-col gap-4 sm:gap-6">
           {canBulk && (
@@ -161,33 +220,7 @@ export function ProductsContent({
           isLoading={isLoading}
           skeletonRows={pageSize}
           stickyColumns={canBulk ? 2 : 1}
-          renderPrependRows={({ getStickyCellProps }) => (
-            <MemoizedProductFilters
-              canBulk={canBulk}
-              showActions
-              search={searchInput}
-              categoryIds={categoryIds}
-              statuses={statuses}
-              priceMin={priceMinInput}
-              priceMax={priceMaxInput}
-              stockMin={stockMinInput}
-              stockMax={stockMaxInput}
-              categories={filterOptions?.categories ?? []}
-              statusOptions={statusOptions}
-              priceRange={filterOptions?.priceRange ?? { min: 0, max: 0 }}
-              stockRange={filterOptions?.stockRange ?? { min: 0, max: 0 }}
-              onSearchChange={onSearchChange}
-              onCategoryChange={onCategoryChange}
-              onStatusChange={onStatusChange}
-              onPriceMinChange={onPriceMinChange}
-              onPriceMaxChange={onPriceMaxChange}
-              onStockMinChange={onStockMinChange}
-              onStockMaxChange={onStockMaxChange}
-              onClear={onClearFilters}
-              isLoading={isLoading || filterOptionsLoading}
-              getStickyCellProps={getStickyCellProps}
-            />
-          )}
+          renderPrependRows={renderPrependRowsCallback}
           emptyState={
             <span className="text-sm text-muted-foreground">
               No products match these filters.

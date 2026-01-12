@@ -328,6 +328,23 @@ export function ProductFilters({
 export const MemoizedProductFilters = memo(
   ProductFilters,
   (prevProps, nextProps) => {
+    // Only compare filter values, options, and loading state
+    // Exclude callback functions and getStickyCellProps as they are stable references
+    const categoriesMatch =
+      prevProps.categories.length === nextProps.categories.length &&
+      prevProps.categories.every(
+        (cat, i) => cat.id === nextProps.categories[i]?.id &&
+        cat.name === nextProps.categories[i]?.name
+      );
+    const statusOptionsMatch =
+      prevProps.statusOptions.join(",") === nextProps.statusOptions.join(",");
+    const priceRangeMatch =
+      prevProps.priceRange.min === nextProps.priceRange.min &&
+      prevProps.priceRange.max === nextProps.priceRange.max;
+    const stockRangeMatch =
+      prevProps.stockRange.min === nextProps.stockRange.min &&
+      prevProps.stockRange.max === nextProps.stockRange.max;
+
     return (
       prevProps.canBulk === nextProps.canBulk &&
       prevProps.showActions === nextProps.showActions &&
@@ -338,7 +355,14 @@ export const MemoizedProductFilters = memo(
       prevProps.priceMax === nextProps.priceMax &&
       prevProps.stockMin === nextProps.stockMin &&
       prevProps.stockMax === nextProps.stockMax &&
-      prevProps.isLoading === nextProps.isLoading
+      prevProps.isLoading === nextProps.isLoading &&
+      categoriesMatch &&
+      statusOptionsMatch &&
+      priceRangeMatch &&
+      stockRangeMatch
+      // Note: Callback functions (onSearchChange, onCategoryChange, etc.)
+      // and getStickyCellProps are intentionally excluded as they are stable
+      // function references that shouldn't cause re-renders
     );
   }
 );

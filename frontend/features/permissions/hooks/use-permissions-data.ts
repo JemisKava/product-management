@@ -36,6 +36,7 @@ export function usePermissionsData({
     data: usersData,
     isLoading: usersLoading,
     error: usersError,
+    refetch: refetchUsers,
   } = trpc.user.list.useQuery(
     {
       page,
@@ -86,5 +87,6 @@ export function usePermissionsData({
     usersData,
     usersLoading,
     usersError,
+    refetchUsers,
   };
 }

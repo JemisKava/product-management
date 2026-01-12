@@ -7,6 +7,7 @@ import { usePermissionsQueryState } from "../hooks/use-permissions-query-state";
 import { usePermissionsFilters } from "../hooks/use-permissions-filters";
 import { usePermissionsAuth } from "../hooks/use-permissions-auth";
 import { usePermissionsData } from "../hooks/use-permissions-data";
+import { usePermissionsSelection } from "@/components/permissions/hooks/use-permissions-selection";
 import { PermissionsContent } from "./permissions-content";
 
 export function PermissionsPageClient() {
@@ -48,6 +49,10 @@ export function PermissionsPageClient() {
     setPage: queryState.setPage,
   });
 
+  // Selection - use employees from data, updating when data changes
+  const employees = data.employees ?? [];
+  const selection = usePermissionsSelection(employees);
+
   // Loading state
   if (auth.isLoading) {
     return <AuthLoadingScreen variant="dashboard" />;
@@ -70,7 +75,7 @@ export function PermissionsPageClient() {
       {isInitialLoad ? (
         <PermissionsSkeleton />
       ) : (
-        <main className="flex-1 overflow-auto p-3 sm:p-4 md:p-6 w-full">
+        <main className="p-3 sm:p-4 md:p-6 w-full">
         <PermissionsContent
           data={data.employees}
           filters={{
@@ -87,6 +92,12 @@ export function PermissionsPageClient() {
           pageSize={queryState.pageSize}
           totalPages={data.usersData?.meta.totalPages ?? 1}
           totalItems={data.usersData?.meta.total ?? 0}
+          rowSelection={selection.rowSelection}
+          setRowSelection={selection.setRowSelection}
+          selectedUserIds={selection.selectedUserIds}
+          selectedUsers={selection.selectedUsers}
+          selectedUsersPreview={selection.selectedUsersPreview}
+          extraSelectedCount={selection.extraSelectedCount}
           onNameSearchChange={filters.handleNameSearchChange}
           onEmailSearchChange={filters.handleEmailSearchChange}
           onPermissionCodesFilterChange={filters.handlePermissionsFilterChange}

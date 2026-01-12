@@ -189,7 +189,7 @@ export function ProductsPageClient() {
   if (!auth.canViewProducts) {
     return (
       <DashboardShell title="Products">
-        <main className="flex-1 overflow-auto p-3 sm:p-4 md:p-6 w-full">
+        <main className="p-3 sm:p-4 md:p-6 w-full">
           <div className="rounded-xl border border-destructive/40 bg-destructive/10 p-6 text-sm text-destructive">
             You do not have permission to view products.
           </div>
@@ -206,7 +206,7 @@ export function ProductsPageClient() {
       {isInitialLoad ? (
         <ProductsSkeleton />
       ) : (
-        <main className="flex-1 overflow-auto p-3 sm:p-4 md:p-6 w-full">
+        <main className="p-3 sm:p-4 md:p-6 w-full">
         <div className="flex flex-col gap-4 sm:gap-6">
           <ProductsHeader
             canCreate={auth.canCreate}

@@ -136,7 +136,7 @@ export function UsersClient() {
   if (!auth.canView) {
     return (
       <DashboardShell title="Users">
-        <main className="flex-1 overflow-auto p-3 sm:p-4 md:p-6 w-full">
+        <main className="p-3 sm:p-4 md:p-6 w-full">
           <div className="rounded-xl border border-destructive/40 bg-destructive/10 p-6 text-sm text-destructive">
             You do not have permission to view users.
           </div>
@@ -153,7 +153,7 @@ export function UsersClient() {
       {isInitialLoad ? (
         <UsersSkeleton />
       ) : (
-        <main className="flex-1 overflow-auto p-3 sm:p-4 md:p-6 w-full">
+        <main className="p-3 sm:p-4 md:p-6 w-full">
         <div className="flex flex-col gap-4 sm:gap-6">
           <UsersHeader canCreate={true} onCreateClick={handleCreateClick} />
 

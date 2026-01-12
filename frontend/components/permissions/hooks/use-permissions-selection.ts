@@ -1,27 +1,64 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import type { EmployeeRow } from "../permissions-utils";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { RowSelectionState } from "@tanstack/react-table";
+import type { EmployeeRow, EmployeeMeta } from "../permissions-utils";
 
 export function usePermissionsSelection(data: EmployeeRow[]) {
-  const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+
+  // Cache user metadata for selected items
+  const userMetaByIdRef = useRef<Map<number, EmployeeMeta>>(new Map());
+
+  // Update user metadata cache when data changes
+  useEffect(() => {
+    data.forEach((user) => {
+      if (user.role === "EMPLOYEE") {
+        userMetaByIdRef.current.set(user.id, {
+          name: user.name,
+          email: user.email,
+        });
+      }
+    });
+  }, [data]);
 
   const selectedUserIds = useMemo(() => {
     return Object.entries(rowSelection)
-      .filter(([, selected]) => selected)
+      .filter(([, isSelected]) => isSelected)
       .map(([id]) => Number(id))
-      .filter((id) => Number.isFinite(id));
+      .filter((id) => !isNaN(id));
   }, [rowSelection]);
 
   const selectedCount = selectedUserIds.length;
 
   const selectedUsers = useMemo(() => {
-    if (selectedUserIds.length === 0) return [];
-    const selectedSet = new Set(selectedUserIds);
-    return data.filter(
-      (user) => user.role === "EMPLOYEE" && selectedSet.has(user.id)
-    );
-  }, [data, selectedUserIds]);
+    return selectedUserIds.map((id) => {
+      const meta = userMetaByIdRef.current.get(id);
+      return {
+        id,
+        name: meta?.name ?? `Employee #${id}`,
+        email: meta?.email ?? "—",
+        role: "EMPLOYEE" as const,
+        permissions: [] as string[],
+      };
+    });
+  }, [selectedUserIds]);
+
+  const selectedUsersPreview = useMemo(() => {
+    return selectedUserIds.slice(0, 4).map((id) => {
+      const meta = userMetaByIdRef.current.get(id);
+      return {
+        id,
+        name: meta?.name ?? `Employee #${id}`,
+        email: meta?.email ?? "—",
+      };
+    });
+  }, [selectedUserIds]);
+
+  const extraSelectedCount = Math.max(
+    selectedUserIds.length - selectedUsersPreview.length,
+    0
+  );
 
   return {
     rowSelection,
@@ -29,5 +66,7 @@ export function usePermissionsSelection(data: EmployeeRow[]) {
     selectedUserIds,
     selectedCount,
     selectedUsers,
+    selectedUsersPreview,
+    extraSelectedCount,
   };
 }

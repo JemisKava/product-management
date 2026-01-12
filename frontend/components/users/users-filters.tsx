@@ -209,13 +209,20 @@ export function UsersFilters({
 export const MemoizedUsersFilters = memo(
   UsersFilters,
   (prevProps, nextProps) => {
+    // Only compare filter values and loading state
+    // Exclude callback functions and getStickyCellProps as they are stable references
     return (
       prevProps.nameSearch === nextProps.nameSearch &&
       prevProps.emailSearch === nextProps.emailSearch &&
       prevProps.status === nextProps.status &&
       prevProps.permissionCodes.join(",") ===
         nextProps.permissionCodes.join(",") &&
+      prevProps.availablePermissions.join(",") ===
+        nextProps.availablePermissions.join(",") &&
       prevProps.isLoading === nextProps.isLoading
+      // Note: Callback functions (onNameSearchChange, onEmailSearchChange, etc.)
+      // and getStickyCellProps are intentionally excluded as they are stable
+      // function references that shouldn't cause re-renders
     );
   }
 );

@@ -12,12 +12,14 @@ type DashboardShellProps = {
 
 export function DashboardShell({ title, children }: DashboardShellProps) {
   return (
-    <SidebarProvider className="bg-sidebar">
+    <SidebarProvider className="bg-sidebar h-svh overflow-hidden">
       <DashboardSidebar />
-      <div className="h-svh overflow-hidden lg:p-2 w-full">
-        <div className="lg:border lg:rounded-md overflow-hidden flex flex-col items-center justify-start bg-container h-full w-full bg-background">
+      <div className="h-full overflow-hidden lg:p-2 w-full">
+        <div className="lg:border lg:rounded-md overflow-hidden flex flex-col bg-container h-full w-full bg-background">
           <DashboardHeader title={title} />
-          {children}
+          <div className="flex-1 overflow-auto w-full min-h-0">
+            {children}
+          </div>
         </div>
       </div>
     </SidebarProvider>

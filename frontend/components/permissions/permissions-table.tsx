@@ -1,14 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import { getCoreRowModel, useReactTable, type RowSelectionState } from "@tanstack/react-table";
 import { CommandBar } from "@/components/ui/command-bar";
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTablePagination } from "@/components/data-table/data-table-pagination";
 import { BulkAssignModal } from "./bulk-assign-modal";
 import { MemoizedPermissionsFilters } from "./permissions-filters";
 import { usePermissionsState } from "./hooks/use-permissions-state";
-import { usePermissionsSelection } from "./hooks/use-permissions-selection";
 import { usePermissionsPreview } from "./hooks/use-permissions-preview";
 import { usePermissionsSave } from "./hooks/use-permissions-save";
 import { usePermissionsActions } from "./hooks/use-permissions-actions";
@@ -44,6 +43,12 @@ type PermissionsTableProps = {
   pageSize: number;
   totalPages: number;
   totalItems: number;
+  rowSelection: RowSelectionState;
+  setRowSelection: (selection: RowSelectionState | ((prev: RowSelectionState) => RowSelectionState)) => void;
+  selectedUserIds: number[];
+  selectedUsers: EmployeeRow[];
+  selectedUsersPreview: Array<{ id: number; name: string; email: string }>;
+  extraSelectedCount: number;
   onNameSearchChange: (value: string) => void;
   onEmailSearchChange: (value: string) => void;
   onPermissionCodesFilterChange: (value: PermissionCode[]) => void;
@@ -69,6 +74,12 @@ export function PermissionsTable({
   pageSize,
   totalPages,
   totalItems,
+  rowSelection,
+  setRowSelection,
+  selectedUserIds,
+  selectedUsers,
+  selectedUsersPreview,
+  extraSelectedCount,
   onNameSearchChange,
   onEmailSearchChange,
   onPermissionCodesFilterChange,
@@ -85,14 +96,8 @@ export function PermissionsTable({
   // Permission state management
   const { basePermissionsByUser, userMetaById } = usePermissionsState(data);
 
-  // Row selection
-  const {
-    rowSelection,
-    setRowSelection,
-    selectedUserIds,
-    selectedCount,
-    selectedUsers,
-  } = usePermissionsSelection(data);
+  // Selected count
+  const selectedCount = selectedUserIds.length;
 
   // Preview logic
   const {
@@ -152,22 +157,8 @@ export function PermissionsTable({
     },
   });
 
-  // Selected users preview
-  const selectedPreview = useMemo(() => {
-    return selectedUserIds.slice(0, 4).map((id) => {
-      const meta = userMetaById.get(id);
-      return {
-        id,
-        name: meta?.name ?? `Employee #${id}`,
-        email: meta?.email ?? "Unknown email",
-      };
-    });
-  }, [selectedUserIds, userMetaById]);
-
-  const extraSelectedCount = Math.max(
-    selectedCount - selectedPreview.length,
-    0
-  );
+  // Use the selected users preview passed from parent
+  const selectedPreview = selectedUsersPreview;
 
   const hasFilters =
     filters.search.trim().length > 0 ||
@@ -303,3 +294,5 @@ export function PermissionsTable({
     </div>
   );
 }
+
+
