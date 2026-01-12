@@ -8,6 +8,7 @@ import { usePermissionsFilters } from "../hooks/use-permissions-filters";
 import { usePermissionsAuth } from "../hooks/use-permissions-auth";
 import { usePermissionsData } from "../hooks/use-permissions-data";
 import { usePermissionsSelection } from "@/components/permissions/hooks/use-permissions-selection";
+import { usePermissionsDraft } from "@/components/permissions/hooks/use-permissions-draft";
 import { PermissionsContent } from "./permissions-content";
 
 export function PermissionsPageClient() {
@@ -52,6 +53,9 @@ export function PermissionsPageClient() {
   // Selection - use employees from data, updating when data changes
   const employees = data.employees ?? [];
   const selection = usePermissionsSelection(employees);
+
+  // Draft permissions - persists across page changes, filters, and searches
+  const draft = usePermissionsDraft();
 
   // Loading state
   if (auth.isLoading) {
@@ -98,6 +102,9 @@ export function PermissionsPageClient() {
           selectedUsers={selection.selectedUsers}
           selectedUsersPreview={selection.selectedUsersPreview}
           extraSelectedCount={selection.extraSelectedCount}
+          draftPermissions={draft.draftPermissions}
+          setDraftPermissions={draft.setDraftPermissions}
+          clearDraftPermissions={draft.clearDraftPermissions}
           onNameSearchChange={filters.handleNameSearchChange}
           onEmailSearchChange={filters.handleEmailSearchChange}
           onPermissionCodesFilterChange={filters.handlePermissionsFilterChange}

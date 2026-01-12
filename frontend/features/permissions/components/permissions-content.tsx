@@ -32,6 +32,15 @@ interface PermissionsContentProps {
   selectedUsers: EmployeeRow[];
   selectedUsersPreview: Array<{ id: number; name: string; email: string }>;
   extraSelectedCount: number;
+  draftPermissions: Map<number, Set<PermissionCode>>;
+  setDraftPermissions: (
+    updater:
+      | Map<number, Set<PermissionCode>>
+      | ((
+          prev: Map<number, Set<PermissionCode>>
+        ) => Map<number, Set<PermissionCode>>)
+  ) => void;
+  clearDraftPermissions: () => void;
   onNameSearchChange: (value: string) => void;
   onEmailSearchChange: (value: string) => void;
   onPermissionCodesFilterChange: (codes: PermissionCode[]) => void;
@@ -62,6 +71,9 @@ export function PermissionsContent({
   selectedUsers,
   selectedUsersPreview,
   extraSelectedCount,
+  draftPermissions,
+  setDraftPermissions,
+  clearDraftPermissions,
   onNameSearchChange,
   onEmailSearchChange,
   onPermissionCodesFilterChange,
@@ -94,6 +106,9 @@ export function PermissionsContent({
         selectedUsers={selectedUsers}
         selectedUsersPreview={selectedUsersPreview}
         extraSelectedCount={extraSelectedCount}
+        draftPermissions={draftPermissions}
+        setDraftPermissions={setDraftPermissions}
+        clearDraftPermissions={clearDraftPermissions}
         onNameSearchChange={onNameSearchChange}
         onEmailSearchChange={onEmailSearchChange}
         onPermissionCodesFilterChange={onPermissionCodesFilterChange}

@@ -1,90 +1,56 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useRef, useState, useCallback } from "react";
 import type { PermissionCode } from "@/lib/permissions";
 
+/**
+ * Hook to manage draft permissions state that persists across page changes, filters, and searches.
+ * Uses a ref to cache the draft permissions so they don't get lost when the component re-renders.
+ */
 export function usePermissionsDraft() {
-  const [draftPermissions, setDraftPermissions] = useState<
+  // Use ref to persist draft permissions across re-renders (source of truth)
+  const draftPermissionsRef = useRef<Map<number, Set<PermissionCode>>>(new Map());
+  
+  // State to trigger re-renders - initialize from ref
+  const [draftPermissions, setDraftPermissionsState] = useState<
     Map<number, Set<PermissionCode>>
-  >(new Map());
+  >(() => new Map(draftPermissionsRef.current));
 
-  const clearDraft = useCallback(() => {
-    setDraftPermissions(new Map());
-  }, []);
-
-  const updateDraft = useCallback(
-    (userId: number, permissions: Set<PermissionCode>) => {
-      setDraftPermissions((prev) => {
-        const next = new Map(prev);
-        if (permissions.size === 0) {
-          next.delete(userId);
-        } else {
-          next.set(userId, permissions);
-        }
-        return next;
-      });
-    },
-    []
-  );
-
-  const togglePermission = useCallback(
-    (userId: number, permission: PermissionCode) => {
-      setDraftPermissions((prev) => {
-        const next = new Map(prev);
-        const current = next.get(userId) ?? new Set<PermissionCode>();
-        const updated = new Set(current);
-
-        if (updated.has(permission)) {
-          updated.delete(permission);
-        } else {
-          updated.add(permission);
-        }
-
-        if (updated.size === 0) {
-          next.delete(userId);
-        } else {
-          next.set(userId, updated);
-        }
-
-        return next;
-      });
-    },
-    []
-  );
-
-  const bulkApply = useCallback(
+  // Update function that modifies both ref and state
+  const setDraftPermissions = useCallback(
     (
-      userIds: number[],
-      permissions: PermissionCode[],
-      replaceExisting: boolean
+      updater:
+        | Map<number, Set<PermissionCode>>
+        | ((
+            prev: Map<number, Set<PermissionCode>>
+          ) => Map<number, Set<PermissionCode>>)
     ) => {
-      setDraftPermissions((prev) => {
-        const next = new Map(prev);
-        const permissionsSet = new Set(permissions);
+      // Read from ref to get current state
+      const current = draftPermissionsRef.current;
+      const next =
+        typeof updater === "function"
+          ? updater(current)
+          : updater;
 
-        userIds.forEach((userId) => {
-          if (replaceExisting) {
-            next.set(userId, permissionsSet);
-          } else {
-            const current = next.get(userId) ?? new Set<PermissionCode>();
-            const updated = new Set(current);
-            permissions.forEach((perm) => updated.add(perm));
-            next.set(userId, updated);
-          }
-        });
-
-        return next;
-      });
+      // Update ref (source of truth) - create new map instance
+      const newMap = new Map(next);
+      draftPermissionsRef.current = newMap;
+      // Update state to trigger re-render
+      setDraftPermissionsState(newMap);
     },
     []
   );
+
+  // Clear all draft permissions
+  const clearDraftPermissions = useCallback(() => {
+    const newMap = new Map();
+    draftPermissionsRef.current = newMap;
+    setDraftPermissionsState(newMap);
+  }, []);
 
   return {
     draftPermissions,
     setDraftPermissions,
-    clearDraft,
-    updateDraft,
-    togglePermission,
-    bulkApply,
+    clearDraftPermissions,
   };
 }
